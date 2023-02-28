@@ -31,7 +31,7 @@ byte outDir[96], inDir[96], tmpbuf[9];
 byte outPath[96], inPath[96], drive[3], dir[88], name[24], ext[4];
 char sys,      // 是否要處理子資料夾
     over,      // 是否要覆蓋已經存在的輸出檔
-    story = 1; // 是否要家輸出的每一行前面加上樣式名稱
+    story = 1; // 是否要輸出的每一行前面加上樣式名稱
 int cnt;
 
 void help(void)
@@ -307,7 +307,7 @@ static char newpara, // 這一行之前是空白行, 將這行視為新段落的
     newblock; // 進入 #框 或是 #表
 static int line;
 static char bold, *outFileName;
-static int prespace; // 非中文字開頭的行前是否要加空白
+static int prespace; // 前一行結尾是否中文字？要加空白
 
 static char stack[21], sp; // p,f,t,T,B,P,I,N
 // 段落標記: #圖(f), !!!(p), ┌(t)
@@ -367,7 +367,9 @@ void Convert(char *inFile, char *outFile)
         printf("\nError at line %d: Bold mark can't across paragraf.\n%s", line, p);
         converror();
       }
-      prespace = 0; // 非中文字開頭的行前不加空白
+      // 新段落開始沒有前一行, 
+      // 不是前一行結尾是中文字
+      prespace = 0; 
       fputs("\n", ofp);
       switch (fetch()) // 清理段落標記
       {
@@ -657,10 +659,11 @@ void ConvBold_Space(char *p)
     else
       cr = 0;          // 沒有移除換行, 之後不需要補回來
 
-    // 檢查前後是否要加空白
+    // 段落前一行尾是中文字且這一行開頭是英文字, 
+    // 加空白隔開中英文
     if (prespace && *q > 0)
       *(p++) = ' ';
-    prespace = 1;
+    prespace = 1;   // 下一行若是英文開頭要補空格
     len = strlen(q);
     for (i = 0; i < len; i++)
     {
@@ -672,11 +675,12 @@ void ConvBold_Space(char *p)
       else
         chin = 0;   // 結尾是英文字
     }
+    // 本行結尾是英文而且不是空格, 直接加空格
     if (!chin && q[len - 1] != ' ')
     {
       q[len] = ' ';
       q[len + 1] = 0;
-      prespace = 0;
+      prespace = 0; // 已加過空格, 下一行不用加空格
     }
   }
 

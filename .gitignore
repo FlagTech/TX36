@@ -8,3 +8,4 @@ F*.doc
 *.tds
 *.layout
 .vscode/
+*.swp
