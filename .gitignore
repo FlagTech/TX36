@@ -1,0 +1,8 @@
+*.exe
+*.obj
+ch*.txt
+F*.txt
+F*.doc
+*.tr2
+*.zip
+.vscode/
