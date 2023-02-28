@@ -642,19 +642,20 @@ void ConvBold_Space(char *p)
   q = tmpstr;
   strcpy(q, p);
 
+  // 非圖說或是程式段落
   if (fetch() != 'f' && fetch() != 'P')
   {
-    LeftTrim(q);
+    LeftTrim(q); // 移除開頭的空白
 
     // 先移除換行符號
     len = strlen(q);
     if (q[len - 1] == '\n')
     {
-      cr = 1;
+      cr = 1;          // 之後需要補回換行
       q[len - 1] = 0;
     }
     else
-      cr = 0;
+      cr = 0;          // 沒有移除換行, 之後不需要補回來
 
     // 檢查前後是否要加空白
     if (prespace && *q > 0)
@@ -663,13 +664,13 @@ void ConvBold_Space(char *p)
     len = strlen(q);
     for (i = 0; i < len; i++)
     {
-      if (q[i] < 0)
+      if (q[i] < 0) // 中文字
       {
         i++;
-        chin = 1;
+        chin = 1;   // 結尾是中文字
       }
       else
-        chin = 0;
+        chin = 0;   // 結尾是英文字
     }
     if (!chin && q[len - 1] != ' ')
     {
@@ -696,7 +697,7 @@ void ConvBold_Space(char *p)
         converror();
       }
       bold = Equal(q, "【") ? b : 'i';
-      q += 2;
+      q += 3; // utf8 編碼要跳過 3 個位元組
       goto recheck;
     }
     if (Equal(q, "】") || Equal(q, "〉"))
@@ -707,7 +708,7 @@ void ConvBold_Space(char *p)
         converror();
       }
       bold = 0;
-      q += 2;
+      q += 3; // utf8 編碼要跳過 3 個位元組
       goto recheck;
     }
     if (*q != 0)
@@ -715,15 +716,17 @@ void ConvBold_Space(char *p)
       if (bold)
       {
         strcpy(p, (bold == 'n' ? "【" : (bold == 'f' ? "《" : "〈")));
-        p += 2;
+        p += 3; // utf8 編碼要跳過 3 個字元
       }
       *(p++) = *(q++);
-      if (*(q - 1) < 0)
+      if (*(q - 1) < 0) {
         *(p++) = *(q++); // 中文字
+        *(p++) = *(q++); // 中文字
+      }
       if (bold)
       {
         strcpy(p, (bold == 'n' ? "】" : (bold == 'f' ? "》" : "〉")));
-        p += 2;
+        p += 3; // utf8 編碼要跳過 3 個位元組
       }
     }
   }
@@ -805,32 +808,32 @@ void ConvTable(char *p)
     }
     else if (Equal(p, "│"))
     {
-      j = 2;
-      while (p[j] == ' ')
+      j = 3;              // 跳過直線的 utf8 編碼 3 個位元
+      while (p[j] == ' ') // 略過開頭的空白
         j++;
-      for (k = 0; p[j] != 0; k++, j++)
+      for (k = 0; p[j] != 0; k++, j++) // 刪除開頭的空白字元
         p[k] = p[j];
-      if (!Equal(p + k - 3, "│") && !Equal(p + k - 3, "┤")) // -3 是包含換行符號
+      if (!Equal(p + k - 4, "│") && !Equal(p + k - 4, "┤")) // -3 是包含換行符號
       {
         printf("\nError at line %d: Can't process freehand table (手繪表格無法處理)\n", line);
         converror();
       }
-      p[k - 3] = 0;
-      k = k - 4;
-      while (p[k] == ' ')
+      p[k - 4] = 0;       // 移除右邊線符號
+      k = k - 5;    
+      while (p[k] == ' ') // 移除尾端的空白
         p[k--] = 0;
       for (i = 0; p[i] != 0; i++)
-      {
+      { // 尋找下一個欄位分隔線
         if (Equal(p + i, "│") || Equal(p + i, "├") || Equal(p + i, "┤") || Equal(p + i, "┼"))
         {
-          k = i - 1;
-          while (p[k] == ' ')
+          k = i - 1;          // k 指向分隔線的前一個字元
+          while (p[k] == ' ') // 將 k 移往左邊欄位最後一個非空白字元
             k--;
-          j = i + 2;
-          while (p[j] == ' ')
+          j = i + 3;          // j 指向分隔線的下一個字元
+          while (p[j] == ' ') // 將 j 移往下一個欄位的第一個非空白字元
             j++;
-          p[k + 1] = '\t';
-          i = k + 1;
+          p[k + 1] = '\t';    // 填入代表欄位分隔的定位字元
+          i = k + 1;          // 移除兩個欄位之間的空白
           for (k += 2; p[j] != 0; k++, j++)
             p[k] = p[j];
           p[k] = 0;

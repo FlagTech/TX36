@@ -6,4 +6,5 @@ F*.doc
 *.tr2
 *.zip
 *.tds
+*.layout
 .vscode/
