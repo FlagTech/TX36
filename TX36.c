@@ -167,7 +167,7 @@ void Process()
       _makepath(outPath, "", outDir, name, ext); // 建立輸出檔名
 
       // 未指定覆蓋輸出檔而且輸出檔已經存在
-      if ((over == 0) && (ofp = fopen(outPath, "rb")))
+      if ((over == 0) && (ofp = fopen(outPath, "rb")) != NULL)
       {  // 詢問是否要覆蓋輸出檔
          printf("\n%s already exist! overwrite? (Yes/No/All)", outPath);
          i = getyna(); // 讓使用者按鍵選取作法

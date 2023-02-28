@@ -5,4 +5,5 @@ F*.txt
 F*.doc
 *.tr2
 *.zip
+*.tds
 .vscode/
